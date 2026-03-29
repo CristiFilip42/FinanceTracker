@@ -41,6 +41,32 @@ public class TransactionService {
         }
         transactionRepository.deleteById(id);
     }
+
+    public List<Transactions> getFilteredTransactions(String type, String category,
+                                                      LocalDate startDate, LocalDate endDate){
+        List<Transactions> transactions = transactionRepository.findAll();
+        if (type != null && !type.isEmpty()) {
+            transactions = transactions.stream()
+                    .filter(t -> t.getType().equals(type))
+                    .toList();
+        }
+        if (category != null && !category.isEmpty()) {
+            transactions = transactions.stream()
+                    .filter(t -> t.getCategory().equals(category))
+                    .toList();
+        }
+        if (startDate != null) {
+            transactions = transactions.stream()
+                    .filter(t -> !t.getDate().isBefore(startDate))
+                    .toList();
+        }
+        if (endDate != null) {
+            transactions = transactions.stream()
+                    .filter(t -> !t.getDate().isAfter(endDate))
+                    .toList();
+        }
+        return transactions;
+    }
 };
 
 
