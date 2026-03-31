@@ -4,12 +4,10 @@ import com.Cristi.FinanceTracker.model.Transactions;
 import com.Cristi.FinanceTracker.service.TransactionService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 @Controller
@@ -21,8 +19,21 @@ public class WebController {
     }
 
     @GetMapping("/")
-    public String dashboard(Model model) {
-        List<Transactions> transactions = transactionService.getAllTransactions();
+    public String dashboard(Model model,
+                            @RequestParam(required = false) String type,
+                            @RequestParam(required = false) String category,
+                            @RequestParam(required = false) String startDate,
+                            @RequestParam(required = false) String endDate) {
+
+        model.addAttribute("selectedType", type);
+        model.addAttribute("selectedCategory", category);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+
+        LocalDate start = (startDate != null && !startDate.isEmpty()) ? LocalDate.parse(startDate) : null;
+        LocalDate end = (endDate != null && !endDate.isEmpty()) ? LocalDate.parse(endDate) : null;
+
+        List<Transactions> transactions = transactionService.getFilteredTransactions(type, category, start, end);
 
         BigDecimal totalIncome = transactions.stream()
             .filter(t -> t.getType().equals("INCOME"))
@@ -40,6 +51,11 @@ public class WebController {
         model.addAttribute("totalIncome", totalIncome);
         model.addAttribute("totalExpenses", totalExpenses);
         model.addAttribute("balance",balance);
+        System.out.println("=== FILTER DEBUG ===");
+        System.out.println("Type: " + type);
+        System.out.println("Category: " + category);
+        System.out.println("Start: " + startDate);
+        System.out.println("End: " + endDate);
 
         return "dashboard";
     }
@@ -59,4 +75,5 @@ public class WebController {
         transactionService.deleteTransaction(id);
         return "redirect:/";
     }
+
 }

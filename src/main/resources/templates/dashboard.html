@@ -37,6 +37,42 @@
         </div>
     </div>
 
+    <!-- Filters -->
+    <form method="get" action="/" class="row mb-4">
+        <div class="col-md-3">
+            <label class="form-label">Type</label>
+            <select name="type" class="form-select">
+                <option value="">All</option>
+                <option value="INCOME" th:selected="${selectedType == 'INCOME'}">Income</option>
+                <option value="EXPENSE" th:selected="${selectedType == 'EXPENSE'}">Expense</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Category</label>
+            <select name="category" class="form-select">
+                <option value="">All</option>
+                <option value="Salary" th:selected="${selectedCategory == 'Salary'}">Salary</option>
+                <option value="Food" th:selected="${selectedCategory == 'Food'}">Food</option>
+                <option value="Transport" th:selected="${selectedCategory == 'Transport'}">Transport</option>
+                <option value="Entertainment" th:selected="${selectedCategory == 'Entertainment'}">Entertainment</option>
+                <option value="Bills" th:selected="${selectedCategory == 'Bills'}">Bills</option>
+                <option value="Other" th:selected="${selectedCategory == 'Other'}">Other</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">From</label>
+            <input type="date" name="startDate" class="form-control" th:value="${startDate}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label">To</label>
+            <input type="date" name="endDate" class="form-control" th:value="${endDate}">
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-outline-primary me-2">Filter</button>
+            <a href="/" class="btn btn-outline-secondary">Clear</a>
+        </div>
+    </form>
+
     <!-- Add Button -->
     <a href="/add" class="btn btn-primary mb-3">Add Transaction</a>
 
