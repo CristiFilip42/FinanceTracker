@@ -7,6 +7,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @Service
 public class TransactionService {
@@ -66,6 +69,34 @@ public class TransactionService {
                     .toList();
         }
         return transactions;
+    }
+    public Map<String, BigDecimal> getSpendingByCategory(List<Transactions> transactions){
+        return transactions.stream()
+                .filter(t -> t.getType().equals("EXPENSE"))
+                .collect(Collectors.groupingBy(
+                        Transactions::getCategory,Collectors.reducing(
+                                BigDecimal.ZERO,t -> t.getAmount().abs(),BigDecimal::add
+                        )
+                ));
+
+    }
+    public Map<String, BigDecimal[]> getMonthlyIncomeVsExpense(List<Transactions> transactions){
+        Map<String, BigDecimal[]> monthlyData = new TreeMap<>();
+
+        for (Transactions t : transactions){
+            String month = t.getDate().getYear() + "-" +
+                    String.format("%02d",t.getDate().getMonthValue());
+
+            monthlyData.putIfAbsent(month, new BigDecimal[]{BigDecimal.ZERO,BigDecimal.ZERO});
+
+            if (t.getType().equals("INCOME")){
+                monthlyData.get(month)[0] = monthlyData.get(month)[0].add(t.getAmount());
+            } else {
+                monthlyData.get(month)[1] = monthlyData.get(month)[1].add(t.getAmount().abs());
+            }
+        }
+
+        return monthlyData;
     }
 };
 

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 public class WebController {
@@ -56,6 +57,20 @@ public class WebController {
         System.out.println("Category: " + category);
         System.out.println("Start: " + startDate);
         System.out.println("End: " + endDate);
+
+        Map<String, BigDecimal> spendingByCategory = transactionService.getSpendingByCategory(transactions);
+        Map<String, BigDecimal[]> monthlyData = transactionService.getMonthlyIncomeVsExpense(transactions);
+
+        // Pie chart data
+        model.addAttribute("categoryLabels", spendingByCategory.keySet());
+        model.addAttribute("categoryValues", spendingByCategory.values());
+
+        // Bar chart data
+        model.addAttribute("monthLabels", monthlyData.keySet());
+        model.addAttribute("monthlyIncome", monthlyData.values().stream()
+                .map(arr -> arr[0]).toList());
+        model.addAttribute("monthlyExpenses", monthlyData.values().stream()
+                .map(arr -> arr[1]).toList());
 
         return "dashboard";
     }
