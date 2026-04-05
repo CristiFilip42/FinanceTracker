@@ -150,10 +150,55 @@ public class TransactionService {
                     throw new IllegalArgumentException("Expected 5 firelds!");
 
                 Transactions t = new Transactions();
-                t.setDate(LocalDate.parse(fields[0]));
-                t.setType(fields[1].trim());
+                t.setDate(LocalDate.parse(fields[0].trim()));
+                t.setType(fields[1].trim().toUpperCase());
+                t.setCategory(fields[2].trim());
+                t.setAmount(new BigDecimal(fields[3].trim()));
+                t.setDescription(fields[4].trim());
+
+                if (t.getType().equals("EXPENSE")) {
+                    t.setAmount(t.getAmount().negate());
+                }
+
+                transactionRepository.save(t);
+                count++;
+            } catch (Exception e) {
+                System.out.println("Skipped line " + lineNumber + ": " + e.getMessage());
             }
         }
+        return count;
+    }
+    private String[] parseCSVLine(String line) {
+        List<String> fields = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (inQuotes) {
+                if (c == '"') {
+                    if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                        current.append('"');
+                        i++;
+                    } else {
+                        inQuotes = false;
+                    }
+                } else {
+                    current.append(c);
+                }
+            } else {
+                if (c == '"') {
+                    inQuotes = true;
+                } else if (c == ',') {
+                    fields.add(current.toString());
+                    current.setLength(0);
+                } else {
+                    current.append(c);
+                }
+            }
+        }
+        fields.add(current.toString());
+        return fields.toArray(new String[0]);
     }
 };
 
