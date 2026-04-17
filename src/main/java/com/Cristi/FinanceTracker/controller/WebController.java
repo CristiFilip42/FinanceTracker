@@ -2,9 +2,12 @@ package com.Cristi.FinanceTracker.controller;
 
 import com.Cristi.FinanceTracker.model.Transactions;
 import com.Cristi.FinanceTracker.service.TransactionService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -61,11 +64,9 @@ public class WebController {
         Map<String, BigDecimal> spendingByCategory = transactionService.getSpendingByCategory(transactions);
         Map<String, BigDecimal[]> monthlyData = transactionService.getMonthlyIncomeVsExpense(transactions);
 
-        // Pie chart data
         model.addAttribute("categoryLabels", spendingByCategory.keySet());
         model.addAttribute("categoryValues", spendingByCategory.values());
 
-        // Bar chart data
         model.addAttribute("monthLabels", monthlyData.keySet());
         model.addAttribute("monthlyIncome", monthlyData.values().stream()
                 .map(arr -> arr[0]).toList());
@@ -88,6 +89,35 @@ public class WebController {
     @GetMapping("/delete/{id}")
     public String deleteTransaction(@PathVariable Long id) {
         transactionService.deleteTransaction(id);
+        return "redirect:/";
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportCSV(){
+        List<Transactions> transactions = transactionService.getAllTransactions();
+        String csv = transactionService.exportToCSV(transactions);
+
+        return ResponseEntity.ok()
+            .header("Content-Disposition", "attachment; filename=transactions.csv")
+                    .header("Content-Type", "text/csv")
+                    .body(csv.getBytes());
+    }
+
+    @PostMapping("/import")
+    public String importCSV(@RequestParam("file")MultipartFile file,
+                            RedirectAttributes redirectAttributes){
+        if (file.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Please select a file");
+            return "redirect:/";
+        }
+        try {
+            int count = transactionService.importFromCSV(file);
+            redirectAttributes.addFlashAttribute("success",
+                    "Imported " + count + " transactions successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error",
+                    "Import failed: " + e.getMessage());
+        }
         return "redirect:/";
     }
 
